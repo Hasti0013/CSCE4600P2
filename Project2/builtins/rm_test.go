@@ -9,29 +9,15 @@ import (
 )
 
 func TestRemoveFile(t *testing.T) {
-func RemoveFile(args ...string) error {
-    if len(args) < 1 {
-        return fmt.Errorf("rm: missing file operand")
-    }
+	// Create a temporary directory for testing
+	tempDir := t.TempDir()
 
-    for _, file := range args {
-        fileInfo, err := os.Stat(file)
-        if err != nil {
-            return fmt.Errorf("rm: %v", err)
-        }
-
-        if fileInfo.IsDir() {
-            return fmt.Errorf("rm: %s is a directory", file)
-        }
-
-        err = os.Remove(file)
-        if err != nil {
-            return fmt.Errorf("rm: %v", err)
-        }
-    }
-    return nil
-}
-{
+	tests := []struct {
+		name    string
+		args    []string
+		wantErr bool
+		setupFunc func() []string // function to setup and return file paths
+	}{
 		{
 			name: "Remove single file",
 			setupFunc: func() []string {
