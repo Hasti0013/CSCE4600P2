@@ -9,11 +9,14 @@ import (
 )
 
 func TestRemoveFile(t *testing.T) {
-	// Create a temporary file for testing
+	// Create a temporary directory and files for testing
 	tempDir := t.TempDir()
-	tempFile := filepath.Join(tempDir, "tempfile.txt")
-	if err := os.WriteFile(tempFile, []byte("test"), 0666); err != nil {
-		t.Fatal(err)
+	tempFile1 := filepath.Join(tempDir, "tempfile1.txt")
+	tempFile2 := filepath.Join(tempDir, "tempfile2.txt")
+	for _, file := range []string{tempFile1, tempFile2} {
+		if err := os.WriteFile(file, []byte("test"), 0666); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	tests := []struct {
@@ -21,8 +24,11 @@ func TestRemoveFile(t *testing.T) {
 		args    []string
 		wantErr bool
 	}{
-		{"Remove single file", []string{tempFile}, false},
+		{"Remove single file", []string{tempFile1}, false},
+		{"Remove multiple files", []string{tempFile1, tempFile2}, false},
 		{"Remove non-existent file", []string{"/nonexistentfile"}, true},
+		{"Combination of existing and non-existing files", []string{tempFile2, "/nonexistentfile"}, true},
+		{"Attempt to remove directory", []string{tempDir}, true},
 		{"No arguments", []string{}, true},
 	}
 
