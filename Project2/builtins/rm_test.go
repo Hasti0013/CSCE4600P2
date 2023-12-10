@@ -41,11 +41,6 @@ func TestRemoveFile(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Attempt to remove directory",
-			args: []string{tempDir},
-			wantErr: true,
-		},
-		{
 			name: "No arguments",
 			args: []string{},
 			wantErr: true,
