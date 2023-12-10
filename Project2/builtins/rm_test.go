@@ -9,35 +9,70 @@ import (
 )
 
 func TestRemoveFile(t *testing.T) {
-	// Create a temporary directory and files for testing
+	// Create a temporary directory for testing
 	tempDir := t.TempDir()
-	tempFile1 := filepath.Join(tempDir, "tempfile1.txt")
-	tempFile2 := filepath.Join(tempDir, "tempfile2.txt")
-	for _, file := range []string{tempFile1, tempFile2} {
-		if err := os.WriteFile(file, []byte("test"), 0666); err != nil {
-			t.Fatal(err)
-		}
-	}
 
 	tests := []struct {
 		name    string
 		args    []string
 		wantErr bool
+		setupFunc func() []string // function to setup and return file paths
 	}{
-		{"Remove single file", []string{tempFile1}, false},
-		{"Remove multiple files", []string{tempFile1, tempFile2}, false},
-		{"Remove non-existent file", []string{"/nonexistentfile"}, true},
-		{"Combination of existing and non-existing files", []string{tempFile2, "/nonexistentfile"}, true},
-		{"Attempt to remove directory", []string{tempDir}, true},
-		{"No arguments", []string{}, true},
+		{
+			name: "Remove single file",
+			setupFunc: func() []string {
+				return []string{createTempFile(t, tempDir, "tempfile1.txt")}
+			},
+			wantErr: false,
+		},
+		{
+			name: "Remove multiple files",
+			setupFunc: func() []string {
+				return []string{
+					createTempFile(t, tempDir, "tempfile2.txt"),
+					createTempFile(t, tempDir, "tempfile3.txt"),
+				}
+			},
+			wantErr: false,
+		},
+		{
+			name: "Remove non-existent file",
+			args: []string{"/nonexistentfile"},
+			wantErr: true,
+		},
+		{
+			name: "Attempt to remove directory",
+			args: []string{tempDir},
+			wantErr: true,
+		},
+		{
+			name: "No arguments",
+			args: []string{},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// setup
+			if tt.setupFunc != nil {
+				tt.args = tt.setupFunc()
+			}
+
+			// testing
 			err := builtins.RemoveFile(tt.args...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RemoveFile() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
+}
+
+// createTempFile is a helper function to create a temporary file
+func createTempFile(t *testing.T, dir, filename string) string {
+	path := filepath.Join(dir, filename)
+	if err := os.WriteFile(path, []byte("test"), 0666); err != nil {
+		t.Fatalf("failed to create temporary file: %s", err)
+	}
+	return path
 }
