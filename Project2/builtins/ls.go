@@ -2,7 +2,7 @@ package builtins
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 func ListDirectory(args ...string) error {
@@ -15,7 +15,7 @@ func ListDirectory(args ...string) error {
 		return fmt.Errorf("ls: too many arguments")
 	}
 
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("ls: %v", err)
 	}
